@@ -14,11 +14,15 @@
 
 ## Git
 Please clone the repository. Don't fork it.
-```$ git clone <repo>```
+```
+$ git clone <repo>
+```
 
 Please create a new branch `dev` when working on your part of the project.
 Create and switch to local `dev` branch
-```$ git checkout -b dev origin/dev```
+```
+$ git checkout -b dev origin/dev
+```
 
 Work on your local `dev` branch and push as you go. *Please include commit message.*
 ```
