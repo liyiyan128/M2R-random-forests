@@ -18,7 +18,7 @@ Please clone the repository. Don't fork it.
 $ git clone <repo>
 ```
 
-Please create a new branch `dev` when working on your part of the project.
+Please create a new branch `dev` when working on your part of the project.<br/>
 Create and switch to local `dev` branch
 ```
 $ git checkout -b dev origin/dev
@@ -30,7 +30,8 @@ $ git commit -m "<message>"
 $ git push origin dev
 ```
 
-If there are conflicts when pushing your work, pull updates and resolve conflicts. (Remember to set up upstream first)
+If there are conflicts when pushing your work, pull updates and resolve conflicts.<br/>
+(Remember to set up upstream first)
 ```
 $ git branch --set-upstream-to=origin/dev dev
 $ git pull
