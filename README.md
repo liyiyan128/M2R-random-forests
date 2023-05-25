@@ -1,11 +1,15 @@
 # M2R: Random Forests
 
+[Breiman](https://github.com/liyiyan128/M2R-random-forests/materials/Breiman.pdf)
+
+[An Introduction to Statistical Learning](https://github.com/liyiyan128/M2R-random-forests/materials/An-Introduction-to-Statistical-Learning.pdf)
 
 ## Contents
 - [M2R: Random Forests](#m2r-random-forests)
   - [Contents](#contents)
   - [Git](#git)
   - [Code](#code)
+
 
 
 ## Git
