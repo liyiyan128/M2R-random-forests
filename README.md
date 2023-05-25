@@ -34,4 +34,4 @@ $ git pull
 
 
 ## Code
-Please comment you code. (Follow PEP8 if possible)
+*Please comment you code.* (Follow PEP8 if possible)
