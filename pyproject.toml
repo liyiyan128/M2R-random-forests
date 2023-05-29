@@ -7,8 +7,13 @@ name = "random-forests"
 version = "1.0"
 authors = [
     {name = "Yiyan Li", email = "yiyan.li21@imperial.ac.uk"},
+    {name = "Ni Alex"},
+    {name = "Song Chengdong"},
+    {name = "Graves Linden"},
+    {name = "Sugiura Koya"},
 ]
 description = "A random forest implementation."
 dependencies = [
     "numpy",
+    "sklearn",
 ]
