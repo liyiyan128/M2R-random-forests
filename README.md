@@ -1,15 +1,19 @@
 # M2R: Random Forests
 
-[Breiman](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/Breiman.pdf)
 
 [An Introduction to Statistical Learning](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/An%20Introduction%20to%20Statistical%20Learning.pdf)
+[Breiman](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/Breiman.pdf)
+
 
 ## Contents
 - [M2R: Random Forests](#m2r-random-forests)
   - [Contents](#contents)
-  - [Git](#git)
   - [Code](#code)
+  - [Git](#git)
 
+
+## Code
+*Please comment you code.* (Follow PEP8 if possible)
 
 
 ## Git
@@ -26,6 +30,7 @@ $ git checkout -b dev origin/dev
 
 Work on your local `dev` branch and push as you go. *Please include commit message.*
 ```
+$ git add <file>
 $ git commit -m "<message>"
 $ git push origin dev
 ```
@@ -36,7 +41,3 @@ If there are conflicts when pushing your work, pull updates and resolve conflict
 $ git branch --set-upstream-to=origin/dev dev
 $ git pull
 ````
-
-
-## Code
-*Please comment you code.* (Follow PEP8 if possible)
