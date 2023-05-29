@@ -1,0 +1,14 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "random-forests"
+version = "1.0"
+authors = [
+    {name = "Yiyan Li", email = "yiyan.li21@imperial.ac.uk"},
+]
+description = "A random forest implementation."
+dependencies = [
+    "numpy",
+]
