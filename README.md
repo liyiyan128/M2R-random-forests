@@ -19,7 +19,7 @@ $ git clone <repo>
 ```
 
 Please create a new branch `dev` when working on your part of the project.<br/>
-Create and switch to local `dev` branch
+Create and switch to local `dev` branch:
 ```
 $ git checkout -b dev origin/dev
 ```
