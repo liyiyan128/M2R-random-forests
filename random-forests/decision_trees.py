@@ -35,7 +35,7 @@ class Node:  # Linden, Koya
     #     pass
 
 
-class DecisionTree:  # Yiyan, Alex, Chengdong
+class DecisionTree:  # Yiyan, Alex, chengdong
     """This is an implementation of a decision tree.
 
     Attributes
