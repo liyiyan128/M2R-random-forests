@@ -81,8 +81,13 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
 
     def predict(self, X):
         """Return the predicted labels `y` for dataset `X`."""
-        pass
-
+        ####
+        predictions = []
+        for x in X:
+             predictions.append(self._traverse(x, self.tree))
+        return predictions
+        ####
+    
     def _grow(self, X, y, depth=0):
         # Stopping conditions.
         # Stop growing and return a leaf node.
@@ -90,6 +95,10 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
             return Node(data=self._majority_vote(y))
         # Stop if leaf_size <= min.
         ## TODO
+        ####
+        if len(y) <= self.min_leaf_size:
+            return Node(data=self._majority_vote(y))
+        ####
 
         # Find the best splitting feature and threshhold
         # using greedy approach
