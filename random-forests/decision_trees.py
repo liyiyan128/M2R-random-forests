@@ -106,7 +106,7 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         if depth >= self.max_depth:
             return Node(data=self._majority_vote(y))
         # Stop if leaf_size <= min.
-        ## TODO
+        ## 
         if len(y) <= self.min_leaf_size:
             return Node(data=self._majority_vote(y))
 
@@ -168,13 +168,31 @@ class DecisionTree:  # Yiyan, Alex, chengdong
             #    best_threshold = threshold
 
         return best_feature, best_threhold
+    
+    def _criterion():
+        '''
+        Calculate the score using specific criterion
+        '''
+        pass
+
 
     def _majority_vote(self, y):
         """Return the most common label in `y`.
 
         In case of a tie, choose randomly.
         """
-        pass
+        unique_labels, counts = np.unique(y, return_counts=True)
+        max_count = np.max(counts)
+        max_indices = np.where(counts == max_count)[0]
+        if len(max_indices) == 1:
+        # Only one label with the maximum count, return it.
+            return unique_labels[max_indices[0]]
+        else:
+        # Multiple labels with the same maximum count, choose randomly.
+            random_index = np.random.choice(max_indices)
+            return unique_labels[random_index]
+
+
 
     def _traverse(self, x, node):
         """Traverse the decision tree with data point `x`
@@ -185,7 +203,13 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         # if <= threshold:
         #     return self._traverse(x, node.left)
         # else:
-        pass
+        if node.is_leaf():
+            return node.data
+        if x[node.feature] <= node.threshold:
+           return self._traverse(x, node.left)  # Traverse left subtree
+        else:
+           return self._traverse(x, node.right)  # Traverse right subtree
+
 
 
 def gini_index(y):
@@ -200,7 +224,6 @@ def classification_error_rate(y):
     """
     Calculate the classification error rate for labels `y`.
     """
-    ####
     if len(y) == 0:
         return 0.0
     
@@ -208,4 +231,3 @@ def classification_error_rate(y):
     error_rate = 1 - np.max(counts) / len(y)
 
     return error_rate
-    ####
