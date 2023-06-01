@@ -70,6 +70,8 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         self.n_labels = None
         self.n_features = None
         self.feature_type = None
+        self.data_range = None
+
 
     def fit(self, X, y, feature_type=None):
         """Fit the training dataset `X` and the labels `y`
@@ -77,16 +79,26 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         self.n_labels = len(np.unique(y))
         self.n_features = X.shape[1]
         self.feature_type = feature_type
+        self.data_range = np.zeros((self.n_features, 2))
+        
+        for i in range(self.n_features):
+            # Categorical
+            if self.feature_type[i] == 1:
+                self.data_range[i] = [0, len(np.unique(X[:, i])) - 1]
+            else:
+                # Continuous
+                self.data_range[i] = [np.min(X[:, i]), np.max(X[:, i])]
+
         self.tree = self._grow(X, y)
+
 
     def predict(self, X):
         """Return the predicted labels `y` for dataset `X`."""
-        ####
         predictions = []
         for x in X:
              predictions.append(self._traverse(x, self.tree))
         return predictions
-        ####
+    
     
     def _grow(self, X, y, depth=0):
         # Stopping conditions.
@@ -95,10 +107,9 @@ class DecisionTree:  # Yiyan, Alex, chengdong
             return Node(data=self._majority_vote(y))
         # Stop if leaf_size <= min.
         ## TODO
-        ####
         if len(y) <= self.min_leaf_size:
             return Node(data=self._majority_vote(y))
-        ####
+
 
         # Find the best splitting feature and threshhold
         # using greedy approach
@@ -186,4 +197,15 @@ def gini_index(y):
 
 
 def classification_error_rate(y):
-    pass
+    """
+    Calculate the classification error rate for labels `y`.
+    """
+    ####
+    if len(y) == 0:
+        return 0.0
+    
+    counts = np.bincount(y)
+    error_rate = 1 - np.max(counts) / len(y)
+
+    return error_rate
+    ####
