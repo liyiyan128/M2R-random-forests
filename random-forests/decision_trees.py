@@ -42,7 +42,7 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         The number of candidates in a split.
     criterion : string, default="gini"
         The criterion when growing a decision tree.
-    tree : dictionary
+    tree
         The decision tree.
     n_labels : int
         The number of distinct labels in the training dataset.
@@ -64,7 +64,7 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         The labels.
     """
     def __init__(self, max_depth=100, min_leaf_size=1,
-                 n_candidates=None, criterion="gini"):
+                 n_candidates=10, criterion="gini"):
         self.max_depth = max_depth
         self.min_leaf_size = min_leaf_size
         self.n_candidates = n_candidates
@@ -81,12 +81,12 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         # If data_range=None unspecified,
         # find the range for each feature.
         if not data_range:
-            self.data_range = [None for _ in range(self.n_features)]
+            self.data_range = np.zeros(self.n_features)
             for i in range(self.n_features):
                 try:
                     # Categorical.
                     if self.feature_type[i]:
-                        self.data_range[i] = [0, len(np.unique(X[:, i])) - 1]
+                        self.data_range[i] = np.unique(X[:, i])
                     # Continuous otherwise.
                     self.data_range[i] = [X[:, i].min(), X[:, i].max()]
                 # feature_type=None, unspecified.
@@ -132,47 +132,55 @@ class DecisionTree:  # Yiyan, Alex, chengdong
 
         For each feature, randomly choose a threshold.
         """
-        best_feature = None
-        best_threhold = None
         best_score = None
+        best_feature = None
+        best_threshold = None
 
         for i in range(self.n_features):
-            threholds = []
-            scores = []
-            # If categorical.
+            # Categorical.
             if self.feature_type[i]:
-                # Categorical split.
-                ## sudo
-                # for _ in range(self.n_candidates):
-                #     randomly choose a threshold
-                #     thresholds.append(threshold)
-                #     compute score
-                #     scores.append(score)
-                pass
+                # Randomly choose thresholds of size=n_candidates.
+                thresholds = np.random.choice(self.data_range[i],
+                                              self.n_candidates)
             # Otherwise continuous.
-            # ...
+            else:
+                lo, hi = self.data_range[i]
+                thresholds = np.random.uniform(lo, hi, self.n_candidates)
 
-            ## sudo
-            # score = best(scores)
-            # threshold = thresholds[scores.index(score)]
+            X_col = X[:, i]
+            scores = np.array([self._criterion(X_col, y, threshold)
+                              for threshold in thresholds])
+            ## The smaller the better?
+            score = scores.min()
+            threshold = thresholds[np.argmin(scores)]
 
             # Initialise best_score.
-            if best_score is None:
+            if not best_score:
                 best_score = score
-                pass
-            # If score is better than best_score:
-            #    best_score = score
-            #    best_feature = feature[i]
-            #    best_threshold = threshold
+            # If score is better than best_score.
+            if score < best_score:
+                best_score = score
+                best_feature = i
+                best_threshold = threshold
 
-        return best_feature, best_threhold
+        return best_feature, best_threshold
 
-    def _criterion(self, y):
+    def _criterion(self, X_col, y, threshold):
         '''Compute the score using specified criterion.'''
+        # Split data `X_col` by `threshold`.
+        left_idx = X_col <= threshold
+        right_idx = ~left_idx
+
         if self.criterion == "gini":
-            return gini_index(y)
+            left_score = gini_index(y[left_idx])
+            right_score = gini_index(y[right_idx])
+            ## Weighted average?
+            return (left_score + right_score) / 2
+
         if self.criterion == "classfication_error_rate":
-            return classification_error_rate(y)
+            left_score = classification_error_rate(y[left_idx])
+            right_score = classification_error_rate(y[right_idx])
+            return (left_score + right_score) / 2
 
     def _majority_vote(self, y):
         """Return the most common label in `y`.
@@ -193,18 +201,12 @@ class DecisionTree:  # Yiyan, Alex, chengdong
     def _traverse(self, x, node):
         """Traverse the decision tree with data point `x`
         from node `node`."""
-        # if node.is_leaf():
-        #     return majority_vote
-
-        # if <= threshold:
-        #     return self._traverse(x, node.left)
-        # else:
         if node.is_leaf():
             return node.data
         if x[node.feature] <= node.threshold:
-            return self._traverse(x, node.left)  # Traverse left subtree
+            return self._traverse(x, node.left)  # Traverse left subtree.
         else:
-            return self._traverse(x, node.right)  # Traverse right subtree
+            return self._traverse(x, node.right)  # Traverse right subtree.
 
 
 def gini_index(y):
