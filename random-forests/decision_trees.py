@@ -42,15 +42,18 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         The number of candidates in a split.
     criterion : string, default="gini"
         The criterion when growing a decision tree.
-    tree
+    tree : dictionary
         The decision tree.
     n_labels : int
         The number of distinct labels in the training dataset.
     n_features : int
         The number of features in the training dataset.
-    feature_type : array_like
-        An array consists of types of features.
-        (Continuous=0 or categorical=1)
+    data_range : array_like
+        An array consists of range for each feature.
+    feature_type : array_like, default=None
+        An array consists of types of features,
+        continuous: 0 or categorical: 1.
+        (If unspecified, take data as continuous.)
 
     Parameters
     ----------
@@ -67,49 +70,44 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         self.n_candidates = n_candidates
         self.criterion = criterion
         self.tree = None
-        self.n_labels = None
-        self.n_features = None
-        self.feature_type = None
-        self.data_range = None
 
-
-    def fit(self, X, y, feature_type=None):
+    def fit(self, X, y, data_range=None, feature_type=None):
         """Fit the training dataset `X` and the labels `y`
         by the decision tree."""
         self.n_labels = len(np.unique(y))
         self.n_features = X.shape[1]
         self.feature_type = feature_type
-        self.data_range = np.zeros((self.n_features, 2))
-        
-        for i in range(self.n_features):
-            # Categorical
-            if self.feature_type[i] == 1:
-                self.data_range[i] = [0, len(np.unique(X[:, i])) - 1]
-            else:
-                # Continuous
-                self.data_range[i] = [np.min(X[:, i]), np.max(X[:, i])]
+        self.data_range = data_range
+        # If data_range=None unspecified,
+        # find the range for each feature.
+        if not data_range:
+            self.data_range = [None for _ in range(self.n_features)]
+            for i in range(self.n_features):
+                try:
+                    # Categorical.
+                    if self.feature_type[i]:
+                        self.data_range[i] = [0, len(np.unique(X[:, i])) - 1]
+                    # Continuous otherwise.
+                    self.data_range[i] = [X[:, i].min(), X[:, i].max()]
+                # feature_type=None, unspecified.
+                except TypeError:
+                    self.data_range[i] = [X[:, i].min(), X[:, i].max()]
 
         self.tree = self._grow(X, y)
 
-
     def predict(self, X):
         """Return the predicted labels `y` for dataset `X`."""
-        predictions = []
-        for x in X:
-             predictions.append(self._traverse(x, self.tree))
-        return predictions
-    
-    
+        y = [self._traverse(x, self.tree) for x in X]
+        return np.array(y)
+
     def _grow(self, X, y, depth=0):
         # Stopping conditions.
         # Stop growing and return a leaf node.
         if depth >= self.max_depth:
             return Node(data=self._majority_vote(y))
-        # Stop if leaf_size <= min.
-        ## 
+        # Stop if leaf_size <= min_leaf_size.
         if len(y) <= self.min_leaf_size:
             return Node(data=self._majority_vote(y))
-
 
         # Find the best splitting feature and threshhold
         # using greedy approach
@@ -123,7 +121,7 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         # Increment depth and call _grow() recursively.
         # left_data = X[left_idx]
         # right_data = X[right_idx]
-        left_node = self._grow(X[left_idx], y[left_idx], depth+1)
+        left_node = self._grow(X[left_idx], y[left_idx], depth+1),
         right_node = self._grow(X[right_idx], y[right_idx], depth+1)
 
         return Node(feature, threshold, left_node, right_node)
@@ -132,7 +130,7 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         """Return the feature and the threshold of the cutpoint
         of a split using greedy approach.
 
-        For each feature, randomly choose a threshold
+        For each feature, randomly choose a threshold.
         """
         best_feature = None
         best_threhold = None
@@ -168,13 +166,13 @@ class DecisionTree:  # Yiyan, Alex, chengdong
             #    best_threshold = threshold
 
         return best_feature, best_threhold
-    
-    def _criterion():
-        '''
-        Calculate the score using specific criterion
-        '''
-        pass
 
+    def _criterion(self, y):
+        '''Compute the score using specified criterion.'''
+        if self.criterion == "gini":
+            return gini_index(y)
+        if self.criterion == "classfication_error_rate":
+            return classification_error_rate(y)
 
     def _majority_vote(self, y):
         """Return the most common label in `y`.
@@ -182,17 +180,15 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         In case of a tie, choose randomly.
         """
         unique_labels, counts = np.unique(y, return_counts=True)
-        max_count = np.max(counts)
+        max_count = counts.max()
         max_indices = np.where(counts == max_count)[0]
         if len(max_indices) == 1:
-        # Only one label with the maximum count, return it.
+            # Only one label with the maximum count, return it.
             return unique_labels[max_indices[0]]
         else:
-        # Multiple labels with the same maximum count, choose randomly.
+            # Multiple labels with the same maximum count, choose randomly.
             random_index = np.random.choice(max_indices)
             return unique_labels[random_index]
-
-
 
     def _traverse(self, x, node):
         """Traverse the decision tree with data point `x`
@@ -206,28 +202,26 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         if node.is_leaf():
             return node.data
         if x[node.feature] <= node.threshold:
-           return self._traverse(x, node.left)  # Traverse left subtree
+            return self._traverse(x, node.left)  # Traverse left subtree
         else:
-           return self._traverse(x, node.right)  # Traverse right subtree
-
+            return self._traverse(x, node.right)  # Traverse right subtree
 
 
 def gini_index(y):
     # G = sum(p_m_k(1 - p_m_k)), 1 <= k <= K
     # np.bincount counts the number of occurences of each value in y.
     # len(y) = number of classes.
-    ps = np.bincount(y)/len(y)
+    ps = np.bincount(y) / len(y)
     return np.sum(ps * (1 - ps))
 
 
 def classification_error_rate(y):
     """
-    Calculate the classification error rate for labels `y`.
+    Return the classification error rate for labels `y`.
     """
     if len(y) == 0:
         return 0.0
-    
-    counts = np.bincount(y)
-    error_rate = 1 - np.max(counts) / len(y)
 
+    counts = np.bincount(y)
+    error_rate = 1 - np.max(counts)/len(y)
     return error_rate
