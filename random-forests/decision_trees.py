@@ -121,7 +121,7 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         # Increment depth and call _grow() recursively.
         # left_data = X[left_idx]
         # right_data = X[right_idx]
-        left_node = self._grow(X[left_idx], y[left_idx], depth+1),
+        left_node = self._grow(X[left_idx], y[left_idx], depth+1)
         right_node = self._grow(X[right_idx], y[right_idx], depth+1)
 
         return Node(feature, threshold, left_node, right_node)
@@ -150,7 +150,6 @@ class DecisionTree:  # Yiyan, Alex, chengdong
             X_col = X[:, i]
             scores = np.array([self._criterion(X_col, y, threshold)
                               for threshold in thresholds])
-            ## The smaller the better?
             score = scores.min()
             threshold = thresholds[np.argmin(scores)]
 
@@ -174,13 +173,18 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         if self.criterion == "gini":
             left_score = gini_index(y[left_idx])
             right_score = gini_index(y[right_idx])
-            ## Weighted average?
-            return (left_score + right_score) / 2
+            # Weighted average.
+            rt = (left_score*len(left_idx)
+                  + right_score*len(right_idx)) / len(y)
+            return rt
 
         if self.criterion == "classfication_error_rate":
             left_score = classification_error_rate(y[left_idx])
             right_score = classification_error_rate(y[right_idx])
-            return (left_score + right_score) / 2
+            # Weighted average.
+            rt = (left_score*len(left_idx)
+                  + right_score*len(right_idx)) / len(y)
+            return rt
 
     def _majority_vote(self, y):
         """Return the most common label in `y`.
@@ -210,17 +214,15 @@ class DecisionTree:  # Yiyan, Alex, chengdong
 
 
 def gini_index(y):
+    """Return the gini index for labels `y`."""
     # G = sum(p_m_k(1 - p_m_k)), 1 <= k <= K
     # np.bincount counts the number of occurences of each value in y.
-    # len(y) = number of classes.
     ps = np.bincount(y) / len(y)
     return np.sum(ps * (1 - ps))
 
 
 def classification_error_rate(y):
-    """
-    Return the classification error rate for labels `y`.
-    """
+    """Return the classification error rate for labels `y`."""
     if len(y) == 0:
         return 0.0
 
