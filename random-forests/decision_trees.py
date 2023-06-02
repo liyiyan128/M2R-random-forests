@@ -64,7 +64,7 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         The labels.
     """
     def __init__(self, max_depth=100, min_leaf_size=1,
-                 n_candidates=10, criterion="gini"):
+                 n_candidates=100, criterion="gini"):
         self.max_depth = max_depth
         self.min_leaf_size = min_leaf_size
         self.n_candidates = n_candidates
@@ -81,7 +81,7 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         # If data_range=None unspecified,
         # find the range for each feature.
         if not data_range:
-            self.data_range = np.empty(self.n_features, dtype=list)
+            self.data_range = np.empty(self.n_features, dtype=object)
             for i in range(self.n_features):
                 try:
                     # Categorical.
@@ -107,6 +107,9 @@ class DecisionTree:  # Yiyan, Alex, chengdong
             return Node(data=self._majority_vote(y))
         # Stop if leaf_size <= min_leaf_size.
         if len(y) <= self.min_leaf_size:
+            return Node(data=self._majority_vote(y))
+        # Stop if `y` contains only one unique label.
+        if len(np.unique(y)) == 1:
             return Node(data=self._majority_vote(y))
 
         # Find the best splitting feature and threshhold
@@ -157,7 +160,7 @@ class DecisionTree:  # Yiyan, Alex, chengdong
             if not best_score:
                 best_score = score
             # If score is better than best_score.
-            if score < best_score:
+            if score <= best_score:
                 best_score = score
                 best_feature = i
                 best_threshold = threshold
@@ -166,25 +169,21 @@ class DecisionTree:  # Yiyan, Alex, chengdong
 
     def _criterion(self, X_col, y, threshold):
         '''Compute the score using specified criterion.'''
+        if self.criterion == "gini":
+            criterion = gini_index
+        if self.criterion == "classification_error_rate":
+            criterion = classification_error_rate
+
         # Split data `X_col` by `threshold`.
         left_idx = X_col <= threshold
         right_idx = ~left_idx
 
-        if self.criterion == "gini":
-            left_score = gini_index(y[left_idx])
-            right_score = gini_index(y[right_idx])
-            # Weighted average.
-            rt = (left_score*len(left_idx)
-                  + right_score*len(right_idx)) / len(y)
-            return rt
-
-        if self.criterion == "classfication_error_rate":
-            left_score = classification_error_rate(y[left_idx])
-            right_score = classification_error_rate(y[right_idx])
-            # Weighted average.
-            rt = (left_score*len(left_idx)
-                  + right_score*len(right_idx)) / len(y)
-            return rt
+        left_score = criterion(y[left_idx])
+        right_score = criterion(y[right_idx])
+        # Weighted average.
+        rt = (left_score*len(left_idx)
+              + right_score*len(right_idx)) / (len(y) + 1e-16)
+        return rt
 
     def _majority_vote(self, y):
         """Return the most common label in `y`.
@@ -216,8 +215,7 @@ class DecisionTree:  # Yiyan, Alex, chengdong
 def gini_index(y):
     """Return the gini index for labels `y`."""
     # G = sum(p_m_k(1 - p_m_k)), 1 <= k <= K
-    # np.bincount counts the number of occurences of each value in y.
-    ps = np.bincount(y) / len(y)
+    ps = len(np.unique(y)) / (len(y) + 1e-16)
     return np.sum(ps * (1 - ps))
 
 
@@ -227,5 +225,5 @@ def classification_error_rate(y):
         return 0.0
 
     counts = np.bincount(y)
-    error_rate = 1 - np.max(counts)/len(y)
+    error_rate = 1 - np.max(counts)/(len(y) + 1e-16)
     return error_rate
