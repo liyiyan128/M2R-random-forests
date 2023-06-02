@@ -81,17 +81,17 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         # If data_range=None unspecified,
         # find the range for each feature.
         if not data_range:
-            self.data_range = np.zeros(self.n_features)
+            self.data_range = np.empty(self.n_features, dtype=list)
             for i in range(self.n_features):
                 try:
                     # Categorical.
                     if self.feature_type[i]:
                         self.data_range[i] = np.unique(X[:, i])
                     # Continuous otherwise.
-                    self.data_range[i] = [X[:, i].min(), X[:, i].max()]
+                    self.data_range[i] = np.array([X[:, i].min(), X[:, i].max()])
                 # feature_type=None, unspecified.
                 except TypeError:
-                    self.data_range[i] = [X[:, i].min(), X[:, i].max()]
+                    self.data_range[i] = np.array([X[:, i].min(), X[:, i].max()])
 
         self.tree = self._grow(X, y)
 
