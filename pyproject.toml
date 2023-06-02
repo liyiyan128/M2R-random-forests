@@ -15,5 +15,4 @@ authors = [
 description = "A random forest implementation."
 dependencies = [
     "numpy",
-    "sklearn",
 ]
