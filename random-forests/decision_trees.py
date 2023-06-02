@@ -102,14 +102,12 @@ class DecisionTree:  # Yiyan, Alex, chengdong
 
     def _grow(self, X, y, depth=0):
         # Stopping conditions.
-        # Stop growing and return a leaf node.
-        if depth >= self.max_depth:
-            return Node(data=self._majority_vote(y))
-        # Stop if leaf_size <= min_leaf_size.
-        if len(y) <= self.min_leaf_size:
-            return Node(data=self._majority_vote(y))
-        # Stop if `y` contains only one unique label.
-        if len(np.unique(y)) == 1:
+        # If depth >= math_depth,
+        # or leaf_size <= min_leaf_size,
+        # or if `y` contains only one unique label.
+        if (depth >= self.max_depth
+                or len(y) <= self.min_leaf_size
+                or len(np.unique(y)) == 1):
             return Node(data=self._majority_vote(y))
 
         # Find the best splitting feature and threshhold
@@ -135,37 +133,57 @@ class DecisionTree:  # Yiyan, Alex, chengdong
 
         For each feature, randomly choose a threshold.
         """
-        best_score = None
+        best_score = float('inf')
         best_feature = None
         best_threshold = None
 
-        for i in range(self.n_features):
-            # Categorical.
-            if self.feature_type[i]:
-                # Randomly choose thresholds of size=n_candidates.
-                thresholds = np.random.choice(self.data_range[i],
-                                              self.n_candidates)
-            # Otherwise continuous.
-            else:
-                lo, hi = self.data_range[i]
-                thresholds = np.random.uniform(lo, hi, self.n_candidates)
-
-            X_col = X[:, i]
-            scores = np.array([self._criterion(X_col, y, threshold)
-                              for threshold in thresholds])
-            score = scores.min()
-            threshold = thresholds[np.argmin(scores)]
-
-            # Initialise best_score.
-            if not best_score:
-                best_score = score
-            # If score is better than best_score.
-            if score <= best_score:
-                best_score = score
-                best_feature = i
-                best_threshold = threshold
+        # If feature_type specified.
+        if self.feature_type:
+            for feature in range(self.n_features):
+                # Categorical split.
+                if self.feature_type[feature]:
+                    score, threshold = self._split_categorical(X, y, feature)
+                # Otherwise continuous.
+                else:
+                    score, threshold = self._split_continuous(X, y, feature)
+                # If score is better than best_score.
+                if score <= best_score:
+                    best_score = score
+                    best_feature = feature
+                    best_threshold = threshold
+        # feature_type unspecified.
+        else:
+            for feature in range(self.n_features):
+                score, threshold = self._split_continuous(X, y, feature)
+                # If score is better than best_score.
+                if score <= best_score:
+                    best_score = score
+                    best_feature = feature
+                    best_threshold = threshold
 
         return best_feature, best_threshold
+
+    def _split_continuous(self, X, y, feature):
+        lo, hi = self.data_range[feature]
+        thresholds = np.random.uniform(lo, hi, self.n_candidates)
+        X_col = X[:, feature]
+        scores = np.array([self._criterion(X_col, y, threshold)
+                          for threshold in thresholds])
+        score = scores.min()
+        threshold = thresholds[np.argmin(scores)]
+
+        return score, threshold
+
+    def _split_categorical(self, X, y, feature):
+        thresholds = np.random.choice(self.data_range[feature],
+                                      self.n_candidates)
+        X_col = X[:, feature]
+        scores = np.array([self._criterion(X_col, y, threshold)
+                          for threshold in thresholds])
+        score = scores.min()
+        threshold = thresholds[np.argmin(scores)]
+
+        return score, threshold
 
     def _criterion(self, X_col, y, threshold):
         '''Compute the score using specified criterion.'''
