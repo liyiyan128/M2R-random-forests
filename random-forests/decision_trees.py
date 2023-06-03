@@ -208,6 +208,9 @@ class DecisionTree:  # Yiyan, Alex, chengdong
 
         In case of a tie, choose randomly.
         """
+        # If y is empty.
+        if not y.size:
+            return None
         unique_labels, counts = np.unique(y, return_counts=True)
         max_count = counts.max()
         max_indices = np.where(counts == max_count)[0]
