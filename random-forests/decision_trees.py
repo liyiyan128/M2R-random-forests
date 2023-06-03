@@ -29,7 +29,7 @@ class Node:  # Linden, Koya
         return self.data is not None
 
 
-class DecisionTree:  # Yiyan, Alex, chengdong
+class DecisionTree:  # Yiyan, Alex, Chengdong
     """This is an implementation of a decision tree.
 
     Attributes
@@ -50,10 +50,9 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         The number of features in the training dataset.
     data_range : array_like
         An array consists of range for each feature.
-    feature_type : array_like, default=None
+    feature_type : array_like, default="continuous"
         An array consists of types of features,
         continuous: 0 or categorical: 1.
-        (If unspecified, take data as continuous.)
 
     Parameters
     ----------
@@ -71,28 +70,23 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         self.criterion = criterion
         self.tree = None
 
-    def fit(self, X, y, data_range=None, feature_type=None):
+    def fit(self, X, y, feature_type="continuous"):
         """Fit the training dataset `X` and the labels `y`
         by the decision tree."""
         self.n_labels = len(np.unique(y))
         self.n_features = X.shape[1]
-        self.feature_type = feature_type
-        self.data_range = data_range
-        # If data_range=None unspecified,
-        # find the range for each feature.
-        if not data_range:
-            self.data_range = np.empty(self.n_features, dtype=object)
-            for i in range(self.n_features):
-                try:
-                    # Categorical.
-                    if self.feature_type[i]:
-                        self.data_range[i] = np.unique(X[:, i])
-                    # Continuous otherwise.
-                    self.data_range[i] = np.array([X[:, i].min(), X[:, i].max()])
-                # feature_type=None, unspecified.
-                except TypeError:
-                    self.data_range[i] = np.array([X[:, i].min(), X[:, i].max()])
-
+        self.feature_type = []
+        # Initialise `feature_type`.
+        if isinstance(feature_type, str):
+            if feature_type == "continuous":
+                self.feature_type = [0 for _ in range(self.n_features)]
+            if feature_type == "categorical":
+                self.feature_type = [1 for _ in range(self.n_features)]
+        else:
+            self.feature_type = feature_type
+        # Initialise `data_range`.
+        self.data_range = np.empty(self.n_features, dtype=object)
+        # Grow the decision tree.
         self.tree = self._grow(X, y)
 
     def predict(self, X):
@@ -104,14 +98,14 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         # Stopping conditions.
         # If depth >= math_depth,
         # or leaf_size <= min_leaf_size,
-        # or if `y` contains only one unique label.
+        # or `y` contains only one unique label.
         if (depth >= self.max_depth
                 or len(y) <= self.min_leaf_size
                 or len(np.unique(y)) == 1):
             return Node(data=self._majority_vote(y))
 
         # Find the best splitting feature and threshhold
-        # using greedy approach
+        # using greedy approach.
         feature, threshold = self._cutpoint(X, y)
 
         # Split the data using the best cutpoint.
@@ -137,52 +131,45 @@ class DecisionTree:  # Yiyan, Alex, chengdong
         best_feature = None
         best_threshold = None
 
-        # If feature_type specified.
-        if self.feature_type:
-            for feature in range(self.n_features):
-                # Categorical split.
-                if self.feature_type[feature]:
-                    score, threshold = self._split_categorical(X, y, feature)
-                # Otherwise continuous.
-                else:
-                    score, threshold = self._split_continuous(X, y, feature)
-                # If score is better than best_score.
-                if score <= best_score:
-                    best_score = score
-                    best_feature = feature
-                    best_threshold = threshold
-        # feature_type unspecified.
-        else:
-            for feature in range(self.n_features):
+        for feature in range(self.n_features):
+            # Categorical split.
+            if self.feature_type[feature]:
+                score, threshold = self._split_categorical(X, y, feature)
+            # Continuous split.
+            else:
                 score, threshold = self._split_continuous(X, y, feature)
-                # If score is better than best_score.
-                if score <= best_score:
-                    best_score = score
-                    best_feature = feature
-                    best_threshold = threshold
+            # Update `best_feature`, `best_threshold`.
+            if score <= best_score:
+                best_score = score
+                best_feature = feature
+                best_threshold = threshold
 
         return best_feature, best_threshold
 
     def _split_continuous(self, X, y, feature):
-        lo, hi = self.data_range[feature]
-        thresholds = np.random.uniform(lo, hi, self.n_candidates)
         X_col = X[:, feature]
+        # Find the range of data for the feature.
+        self.data_range[feature] = np.array([X_col.min(), X_col.max()])
+        lo, hi = self.data_range[feature]
+        # Randomly choose thresholds of size=`n_candidates`.
+        thresholds = np.random.uniform(lo, hi, self.n_candidates)
         scores = np.array([self._criterion(X_col, y, threshold)
                           for threshold in thresholds])
         score = scores.min()
         threshold = thresholds[np.argmin(scores)]
-
         return score, threshold
 
     def _split_categorical(self, X, y, feature):
+        X_col = X[:, feature]
+        # Find the range of data for the feature.
+        self.data_range[feature] = np.unique(X[:, feature])
+        # Randomly choose thresholds of size=`n_candidates`.
         thresholds = np.random.choice(self.data_range[feature],
                                       self.n_candidates)
-        X_col = X[:, feature]
         scores = np.array([self._criterion(X_col, y, threshold)
                           for threshold in thresholds])
         score = scores.min()
         threshold = thresholds[np.argmin(scores)]
-
         return score, threshold
 
     def _criterion(self, X_col, y, threshold):
@@ -208,9 +195,9 @@ class DecisionTree:  # Yiyan, Alex, chengdong
 
         In case of a tie, choose randomly.
         """
-        # If y is empty.
-        if not y.size:
-            return None
+        ## If y is empty.
+        ## if not y.size:
+        ##     return None
         unique_labels, counts = np.unique(y, return_counts=True)
         max_count = counts.max()
         max_indices = np.where(counts == max_count)[0]
@@ -236,15 +223,12 @@ class DecisionTree:  # Yiyan, Alex, chengdong
 def gini_index(y):
     """Return the gini index for labels `y`."""
     # G = sum(p_m_k(1 - p_m_k)), 1 <= k <= K
-    ps = len(np.unique(y)) / (len(y) + 1e-16)
+    ps = np.bincount(y) / (len(y) + 1e-16)
     return np.sum(ps * (1 - ps))
 
 
 def classification_error_rate(y):
     """Return the classification error rate for labels `y`."""
-    if len(y) == 0:
-        return 0.0
-
     counts = np.bincount(y)
     error_rate = 1 - np.max(counts)/(len(y) + 1e-16)
     return error_rate
