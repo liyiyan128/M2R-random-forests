@@ -134,10 +134,10 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         for feature in range(self.n_features):
             # Categorical split.
             if self.feature_type[feature]:
-                score, threshold = self._split(X, y, feature)
+                score, threshold = self._split_categorical(X, y, feature)
             # Continuous split.
             else:
-                score, threshold = self._split(X, y, feature)
+                score, threshold = self._split_continuous(X, y, feature)
             # Update `best_feature`, `best_threshold`.
             if score <= best_score:
                 best_score = score
@@ -146,21 +146,26 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
 
         return best_feature, best_threshold
 
-    def _split(self, X, y, feature):
+    def _split_continuous(self, X, y, feature):
         X_col = X[:, feature]
-        thresholds = []
-        if feature.feature_type[feature]:
-            self.data_range[feature] = np.unique(X[:, feature])
-            # Randomly choose thresholds of size=`n_candidates`.
-            thresholds = np.random.choice(self.data_range[feature],
-                                          self.n_candidates)
-        else:
-            # Find the range of data for the feature.
-            self.data_range[feature] = np.array([X_col.min(), X_col.max()])
-            lo, hi = self.data_range[feature]
-            # Randomly choose thresholds of size=`n_candidates`.
-            thresholds = np.random.uniform(lo, hi, self.n_candidates)
-        
+        # Find the range of data for the feature.
+        self.data_range[feature] = np.array([X_col.min(), X_col.max()])
+        lo, hi = self.data_range[feature]
+        # Randomly choose thresholds of size=`n_candidates`.
+        thresholds = np.random.uniform(lo, hi, self.n_candidates)
+        scores = np.array([self._criterion(X_col, y, threshold)
+                          for threshold in thresholds])
+        score = scores.min()
+        threshold = thresholds[np.argmin(scores)]
+        return score, threshold
+
+    def _split_categorical(self, X, y, feature):
+        X_col = X[:, feature]
+        # Find the range of data for the feature.
+        self.data_range[feature] = np.unique(X[:, feature])
+        # Randomly choose thresholds of size=`n_candidates`.
+        thresholds = np.random.choice(self.data_range[feature],
+                                      self.n_candidates)
         scores = np.array([self._criterion(X_col, y, threshold)
                           for threshold in thresholds])
         score = scores.min()
@@ -190,9 +195,6 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
 
         In case of a tie, choose randomly.
         """
-        ## If y is empty.
-        ## if not y.size:
-        ##     return None
         unique_labels, counts = np.unique(y, return_counts=True)
         max_count = counts.max()
         max_indices = np.where(counts == max_count)[0]
