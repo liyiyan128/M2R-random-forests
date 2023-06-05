@@ -1,4 +1,23 @@
 import numpy as np
+import random as rnd
+
+
+class FeatureError(TypeError):
+    pass
+
+
+def random_subset(s):
+    """Return random subset that is not empty or the whole set s. len(s) > 1"""
+    if len(s) <= 1:
+        raise FeatureError("must have len(set) >= 1")
+    subset = set()
+    for element in s:
+        if rnd.choice((True, False)):
+            subset.add(element)
+    if subset and subset != s:
+        return subset
+    else:
+        return random_subset(s)
 
 
 class Node:  # Linden, Koya
@@ -110,9 +129,11 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
 
         # Split the data using the best cutpoint.
         # Create two boolean arrays to slice left and right data.
-        left_idx = X[:, feature] <= threshold
+        if self.feature_type[feature]:
+            left_idx = np.isin(X[:, feature], list(threshold))
+        else:
+            left_idx = X[:, feature] <= threshold
         right_idx = ~left_idx
-
         # Increment depth and call _grow() recursively.
         # left_data = X[left_idx]
         # right_data = X[right_idx]
@@ -133,11 +154,14 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
 
         for feature in range(self.n_features):
             # Categorical split.
-            if self.feature_type[feature]:
-                score, threshold = self._split_categorical(X, y, feature)
-            # Continuous split.
+            if len(np.unique(X[:, feature])) == 1:
+                score, threshold = 100, None
             else:
-                score, threshold = self._split_continuous(X, y, feature)
+                if self.feature_type[feature]:
+                    score, threshold = self._split_categorical(X, y, feature)
+                # Continuous split.
+                else:
+                    score, threshold = self._split_continuous(X, y, feature)
             # Update `best_feature`, `best_threshold`.
             if score <= best_score:
                 best_score = score
@@ -153,7 +177,7 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         lo, hi = self.data_range[feature]
         # Randomly choose thresholds of size=`n_candidates`.
         thresholds = np.random.uniform(lo, hi, self.n_candidates)
-        scores = np.array([self._criterion(X_col, y, threshold)
+        scores = np.array([self._criterion(X_col, y, feature, threshold)
                           for threshold in thresholds])
         score = scores.min()
         threshold = thresholds[np.argmin(scores)]
@@ -164,15 +188,15 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         # Find the range of data for the feature.
         self.data_range[feature] = np.unique(X[:, feature])
         # Randomly choose thresholds of size=`n_candidates`.
-        thresholds = np.random.choice(self.data_range[feature],
-                                      self.n_candidates)
-        scores = np.array([self._criterion(X_col, y, threshold)
+        thresholds = list(random_subset(
+                            set(self.data_range[feature].flatten())))
+        scores = np.array([self._criterion(X_col, y, feature, threshold)
                           for threshold in thresholds])
         score = scores.min()
         threshold = thresholds[np.argmin(scores)]
         return score, threshold
 
-    def _criterion(self, X_col, y, threshold):
+    def _criterion(self, X_col, y, feature, threshold):
         '''Compute the score using specified criterion.'''
         if self.criterion == "gini":
             criterion = gini_index
@@ -180,7 +204,10 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
             criterion = classification_error_rate
 
         # Split data `X_col` by `threshold`.
-        left_idx = X_col <= threshold
+        if self.feature_type[feature]:
+            left_idx = np.isin(X_col, list(threshold))
+        else:
+            left_idx = X_col <= threshold
         right_idx = ~left_idx
 
         left_score = criterion(y[left_idx])
@@ -211,10 +238,17 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         from node `node`."""
         if node.is_leaf():
             return node.data
-        if x[node.feature] <= node.threshold:
-            return self._traverse(x, node.left)  # Traverse left subtree.
+
+        if self.feature_type[node.feature]:
+            if np.isin(x[node.feature], list(node.threshold)):
+                return self._traverse(x, node.left)  # Traverse left subtree.
+            else:
+                return self._traverse(x, node.right)  # Traverse right subtree.
         else:
-            return self._traverse(x, node.right)  # Traverse right subtree.
+            if x[node.feature] <= node.threshold:
+                return self._traverse(x, node.left)  # Traverse left subtree.
+            else:
+                return self._traverse(x, node.right)  # Traverse right subtree.
 
 
 def gini_index(y):
