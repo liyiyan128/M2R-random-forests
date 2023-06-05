@@ -11,14 +11,28 @@ iris = load_iris()
 X = iris['data']
 y = iris['target']
 X_train, X_test, y_train, y_test = model_selection.train_test_split(X, y)
+W = np.array(X, dtype=object)
+cat = ["s" for _ in range(X.shape[0])]
+for i in range(X.shape[0]):
+    if X[i, 3] <= 0.8:
+        cat[i] = "a"
+    elif 0.8 < X[i, 3] <= 1.6:
+        cat[i] = "b"
+    elif X[i, 3] > 1.6:
+        cat[i] = "c"
+W[:, 3] = cat
+W_train, W_test, z_train, z_test = model_selection.train_test_split(W, y)
 
 
-# DecisionTree
-decision_tree = rf.DecisionTree(max_depth=100, min_leaf_size=1,
-                                n_candidates=100, criterion="gini")
-
-# Test fit
+# Test on continuous data.
+decision_tree = rf.DecisionTree()
 decision_tree.fit(X_train, y_train)
-
-# Test _grow
 decision_tree._grow(X_train, y_train)
+y_predicted = decision_tree.predict(X_test)
+
+
+# Test on categorical data.
+decision_tree2 = rf.DecisionTree()
+decision_tree2.fit(W_train, z_train, feature_type=[0, 0, 0, 1])
+decision_tree2._grow(W_train, z_train)
+z_predicted = decision_tree2.predict(W_test)
