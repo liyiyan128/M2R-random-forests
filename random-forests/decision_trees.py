@@ -1,34 +1,15 @@
 import numpy as np
-import random as rnd
 
 
-class FeatureError(TypeError):
-    pass
-
-
-def random_subset(s):
-    """Return random subset that is not empty or the whole set s. len(s) > 1"""
-    if len(s) <= 1:
-        raise FeatureError("must have len(set) >= 1")
-    subset = set()
-    for element in s:
-        if rnd.choice((True, False)):
-            subset.add(element)
-    if subset and subset != s:
-        return subset
-    else:
-        return random_subset(s)
-
-
-class Node:  # Linden, Koya
+class Node:
     """This is a class for a node.
 
     Attributes
     ----------
     feature : numerical or string
-        The feature of the node.
+        The feature used to split the node.
     threshold : numerical or string
-        The threshold when splitting a node.
+        The threshold used to split the node.
     left : Node, default=None
         The left node of this node.
     right : Node, default=None
@@ -48,7 +29,7 @@ class Node:  # Linden, Koya
         return self.data is not None
 
 
-class DecisionTree:  # Yiyan, Alex, Chengdong
+class DecisionTree:
     """This is an implementation of a decision tree.
 
     Attributes
@@ -63,12 +44,10 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         The criterion when growing a decision tree.
     tree
         The decision tree.
-    n_labels : int
-        The number of distinct labels in the training dataset.
     n_features : int
         The number of features in the training dataset.
     data_range : array_like
-        An array consists of range for each feature.
+        An array consists of the range of the current data for each feature.
     feature_type : array_like, default="continuous"
         An array consists of types of features,
         continuous: 0 or categorical: 1.
@@ -82,7 +61,7 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         The labels.
     """
     def __init__(self, max_depth=100, min_leaf_size=1,
-                 n_candidates=100, criterion="gini"):
+                 n_candidates=10, criterion="gini"):
         self.max_depth = max_depth
         self.min_leaf_size = min_leaf_size
         self.n_candidates = n_candidates
@@ -92,7 +71,6 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
     def fit(self, X, y, feature_type="continuous"):
         """Fit the training dataset `X` and the labels `y`
         by the decision tree."""
-        self.n_labels = len(np.unique(y))
         self.n_features = X.shape[1]
         self.feature_type = []
         # Initialise `feature_type`.
@@ -114,6 +92,12 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         return np.array(y)
 
     def _grow(self, X, y, depth=0):
+        """Grow the decision tree.
+
+        Grow the decision tree by recursively calling _grow
+        until hitting one of the stopping conditions.
+        Instantiate and return a leaf node.
+        """
         # Stopping conditions.
         # If depth >= math_depth,
         # or leaf_size <= min_leaf_size,
@@ -129,11 +113,16 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
 
         # Split the data using the best cutpoint.
         # Create two boolean arrays to slice left and right data.
-        if self.feature_type[feature]:
-            left_idx = np.isin(X[:, feature], list(threshold))
+        if self.feature_type[feature]:  # If categorical.
+            left_idx = np.isin(X[:, feature], threshold)
         else:
             left_idx = X[:, feature] <= threshold
         right_idx = ~left_idx
+        # Avoid invalid split (empty child node).
+        # e.g. len(y)=2
+        if not y[left_idx].size or not y[right_idx].size:
+            return Node(data=self._majority_vote(y))
+
         # Increment depth and call _grow() recursively.
         # left_data = X[left_idx]
         # right_data = X[right_idx]
@@ -146,7 +135,7 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         """Return the feature and the threshold of the cutpoint
         of a split using greedy approach.
 
-        For each feature, randomly choose a threshold.
+        For each feature, randomly sample thresholds.
         """
         best_score = float('inf')
         best_feature = None
@@ -154,16 +143,13 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
 
         for feature in range(self.n_features):
             # Categorical split.
-            if len(np.unique(X[:, feature])) == 1:
-                score, threshold = 100, None
+            if self.feature_type[feature]:
+                score, threshold = self._split_categorical(X, y, feature)
+            # Continuous split.
             else:
-                if self.feature_type[feature]:
-                    score, threshold = self._split_categorical(X, y, feature)
-                # Continuous split.
-                else:
-                    score, threshold = self._split_continuous(X, y, feature)
+                score, threshold = self._split_continuous(X, y, feature)
             # Update `best_feature`, `best_threshold`.
-            if score <= best_score:
+            if score < best_score:
                 best_score = score
                 best_feature = feature
                 best_threshold = threshold
@@ -171,6 +157,7 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         return best_feature, best_threshold
 
     def _split_continuous(self, X, y, feature):
+        """Split continuous data."""
         X_col = X[:, feature]
         # Find the range of data for the feature.
         self.data_range[feature] = np.array([X_col.min(), X_col.max()])
@@ -184,12 +171,22 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         return score, threshold
 
     def _split_categorical(self, X, y, feature):
+        """Split categorical data."""
         X_col = X[:, feature]
         # Find the range of data for the feature.
-        self.data_range[feature] = np.unique(X[:, feature])
-        # Randomly choose thresholds of size=`n_candidates`.
-        thresholds = list(random_subset(
-                            set(self.data_range[feature].flatten())))
+        self.data_range[feature] = np.unique(X_col)
+        n_category = len(self.data_range[feature])
+        # If there is only one category.
+        if n_category == 1:
+            return float('inf'), None
+
+        # Create a random boolean matrix for random subset slicing.
+        subset_idx = np.random.choice([True, False],
+                                      (self.n_candidates, n_category))
+        # Deselect empty set and the set itself.
+        thresholds = np.array([self.data_range[feature][idx]
+                               for idx in subset_idx
+                               if idx.any() and not idx.all()], dtype=object)
         scores = np.array([self._criterion(X_col, y, feature, threshold)
                           for threshold in thresholds])
         score = scores.min()
@@ -203,9 +200,9 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         if self.criterion == "classification_error_rate":
             criterion = classification_error_rate
 
-        # Split data `X_col` by `threshold`.
-        if self.feature_type[feature]:
-            left_idx = np.isin(X_col, list(threshold))
+        # Split `X_col` by `threshold`.
+        if self.feature_type[feature]:  # If categorical.
+            left_idx = np.isin(X_col, threshold)
         else:
             left_idx = X_col <= threshold
         right_idx = ~left_idx
@@ -239,8 +236,8 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
         if node.is_leaf():
             return node.data
 
-        if self.feature_type[node.feature]:
-            if np.isin(x[node.feature], list(node.threshold)):
+        if self.feature_type[node.feature]:  # If categorical.
+            if np.isin(x[node.feature], node.threshold):
                 return self._traverse(x, node.left)  # Traverse left subtree.
             else:
                 return self._traverse(x, node.right)  # Traverse right subtree.
@@ -254,12 +251,12 @@ class DecisionTree:  # Yiyan, Alex, Chengdong
 def gini_index(y):
     """Return the gini index for labels `y`."""
     # G = sum(p_m_k(1 - p_m_k)), 1 <= k <= K
-    ps = np.bincount(y) / (len(y) + 1e-16)
+    ps = len(np.unique(y)) / (len(y) + 1e-16)
     return np.sum(ps * (1 - ps))
 
 
 def classification_error_rate(y):
     """Return the classification error rate for labels `y`."""
-    counts = np.bincount(y)
-    error_rate = 1 - np.max(counts)/(len(y) + 1e-16)
+    counts = len(np.unique(y))
+    error_rate = 1 - counts/(len(y) + 1e-16)
     return error_rate
