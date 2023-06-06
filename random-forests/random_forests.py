@@ -1,69 +1,65 @@
-from .decision_trees import DecisionTree
-import pandas as pd
 import numpy as np
-
-
-def choice(data):
-    """For use with evaluate to select random mode if there are multiple."""
-    return np.random.choice(data.dropna())
-
-
-def bootstrap(data):
-    """Return bootstrap sample of data."""
-    nrows = data.shape[0]
-    return data.iloc[np.random.randint(nrows, size=nrows), :]
+# from scipy.stats import bootstrap
+from .decision_trees import DecisionTree
 
 
 class RandomForest:
-    """Implements random forests algorithm.
+    """This is an implementation of a random forest.
 
     Attributes
     ----------
-    data : pandas.core.frame.DataFrame
-        The training data for the trees. Must be pre-prepared so that any
-        categorical features of data have type category. E.g. if the data
-        has a column "class" which is categorical, before passing the data
-        to DecisionTree run data["class"] = data["class"].astype("category")
-    label : string, the feature of data you want to predict.
-        Must also be a column of data.
-    m : int, Number of node splits to evaluate at each split
-    max_depth : int, maximum number of splits in the DecisionTree
-    ntrees : number of trees to grow in forest
-    min_size : minimum region/data size of a node in a tree, any node with
-        region size <= min_size will be turned into a terminal node.
-    criterion : "gini" or "entropy" to use when scoring splits
+    n_trees : int
+        The number of decision trees.
+    max_depth : int, default=100
+        The maximum number of splits in a decision tree.
+    min_leaf_size : int, default=1
+        The minimum size of a leaf node.
+    n_cadidates : int, default=None
+        The number of candidate splits.
+    criterion : string, default="gini"
+        The criterion when growing a decision tree.
+    feature_type : array_like, default="continuous"
+        An array consists of types of features,
+        continuous: 0 or categorical: 1.
+
+    Parameters
+    ----------
+    X : ndarray
+        The dataset.
+        The rows of `X` are data points and the columns corespond to features.
+    y : array_like
+        The labels.
     """
-    def __init__(self, data, label, *, m=10, max_depth=10, ntrees=5,
-                 min_size=1, criterion="gini"):
-        if criterion not in {"gini", "entropy"}:
-            raise TypeError(f"criterion {criterion} not understood, must be"
-                            + "'gini' or 'entropy'.")
-        self.data = data
-        self.label = label
-        self.m = m
+    def __init__(self, n_trees=10, max_depth=100, min_leaf_size=1,
+                 n_candidates=10, criterion="gini"):
+        self.n_trees = n_trees
         self.max_depth = max_depth
-        self.ntrees = ntrees
-        self.min_size = min_size
+        self.min_leaf_size = min_leaf_size
+        self.n_candidates = n_candidates
         self.criterion = criterion
-        self.forest = self._fit()
+        self.forest = []
 
-    def _fit(self):
+    def fit(self, X, y, n_features):
         """Fit the random forest."""
-        return [DecisionTree(bootstrap(self.data), self.label, m=self.m,
-                             max_depth=self.max_depth, min_size=self.min_size,
-                             criterion=self.criterion)
-                for i in range(self.ntrees)]
+        for _ in range(self.n_trees):
+            tree = DecisionTree(self.max_depth, self.min_leaf_size,
+                                self.n_candidates, self.criterion)
+            X_bootstrap, y_bootstrap = bootstrap(X, y)
+            tree.fit(X_bootstrap, y_bootstrap)
+            self.forest.append(tree)
 
-    def predict(self, obs):
-        """Evaluate self given obs."""
-        predictions = pd.DataFrame()
-        for j, tree in enumerate(self.forest):
-            predictions[j] = pd.Series(tree.predict(obs))
-        return predictions.mode(axis=1).apply(choice, axis=1)
+    def predict(self, X):
+        """Return the predicted labels for `X`."""
+        votes = np.array([tree.predict(X) for tree in self.forest])
+        return self._majority_vote(votes)
 
-    # def test(self, tdata):
-    #     """Given tdata with known labels returns info on
-    #     # misclassifications."""
-    #     labels = pd.DataFrame(tdata[self.label])
-    #     labels["predicted"] = self.evaluate(tdata)
-    #     labels["correct?"] = labels[self.label] == labels["predicted"]
+    def _majority_vote(self, votes):
+        """Return the majority vote for `votes`."""
+        pass
+
+
+def bootstrap(X, y):
+    """Bootstrap sample."""
+    n = X.shape[0]
+    idx = np.random.choice(n, size=n, replace=True)
+    return X[idx], y[idx]
