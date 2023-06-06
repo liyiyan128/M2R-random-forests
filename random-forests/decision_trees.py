@@ -248,6 +248,8 @@ class DecisionTree:
                 return self._traverse(x, node.right)  # Traverse right subtree.
 
 
+## TODO
+## Need modification for categorical data.
 def gini_index(y):
     """Return the gini index for labels `y`."""
     # G = sum(p_m_k(1 - p_m_k)), 1 <= k <= K
