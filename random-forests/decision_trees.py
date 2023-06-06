@@ -39,7 +39,7 @@ class DecisionTree:
     min_leaf_size : int, default=1
         The minimum size of a leaf node.
     n_cadidates : int, default=None
-        The number of candidate splits.
+        The number of candidates in a split.
     criterion : string, default="gini"
         The criterion when growing a decision tree.
     tree
@@ -102,15 +102,16 @@ class DecisionTree:
         # If depth >= math_depth,
         # or leaf_size <= min_leaf_size,
         # or `y` contains only one unique label.
+        valid_cols_barr = valid_cols(X)
         if (depth >= self.max_depth
                 or len(y) <= self.min_leaf_size
-                or len(np.unique(y)) == 1):
+                or len(np.unique(y)) == 1
+                or not np.any(valid_cols_barr)):
             return Node(data=self._majority_vote(y))
 
         # Find the best splitting feature and threshhold
         # using greedy approach.
-        feature, threshold = self._cutpoint(X, y)
-
+        feature, threshold = self._cutpoint(X, y, valid_cols_barr)
         # Split the data using the best cutpoint.
         # Create two boolean arrays to slice left and right data.
         if self.feature_type[feature]:  # If categorical.
@@ -118,10 +119,10 @@ class DecisionTree:
         else:
             left_idx = X[:, feature] <= threshold
         right_idx = ~left_idx
-        # Avoid invalid split (empty child node).
-        # e.g. len(y)=2
-        if not y[left_idx].size or not y[right_idx].size:
-            return Node(data=self._majority_vote(y))
+        # # Avoid invalid split (empty child node).
+        # # e.g. len(y)=2
+        # if not y[left_idx].size or not y[right_idx].size:
+        #     return Node(data=self._majority_vote(y))
 
         # Increment depth and call _grow() recursively.
         # left_data = X[left_idx]
@@ -131,7 +132,7 @@ class DecisionTree:
 
         return Node(feature, threshold, left_node, right_node)
 
-    def _cutpoint(self, X, y):
+    def _cutpoint(self, X, y, v_cols):
         """Return the feature and the threshold of the cutpoint
         of a split using greedy approach.
 
@@ -141,21 +142,21 @@ class DecisionTree:
         best_feature = None
         best_threshold = None
 
+        features = np.arange(self.n_features)[v_cols]
         for _ in range(self.n_candidates):
             # Choose a feature randomly.
-            feature = np.random.choice(self.n_features)
+            feature = np.random.choice(features)
             # Categorical split.
             if self.feature_type[feature]:
                 score, threshold = self._split_categorical(X, y, feature)
             # Continuous split.
             else:
                 score, threshold = self._split_continuous(X, y, feature)
-            # Update `best_feature`, `best_threshold`.
+            # Update best feature and threshold
             if score < best_score:
                 best_score = score
                 best_feature = feature
                 best_threshold = threshold
-
         return best_feature, best_threshold
 
     def _split_continuous(self, X, y, feature):
@@ -164,8 +165,6 @@ class DecisionTree:
         # Find the range of the data for the feature.
         self.data_range[feature] = np.array([X_col.min(), X_col.max()])
         lo, hi = self.data_range[feature]
-        if lo == hi:
-            return float('inf'), None
         # Randomly choose a threshold.
         threshold = np.random.uniform(lo, hi)
         score = self._criterion(X_col, y, feature, threshold)
@@ -177,10 +176,6 @@ class DecisionTree:
         # Find the range of the data for the feature.
         self.data_range[feature] = np.unique(X_col)
         n_category = len(self.data_range[feature])
-        # If there is only one category.
-        if n_category == 1:
-            return float('inf'), None
-
         while True:
             # Create a random boolean array for random subset slicing.
             subset_idx = np.random.choice([True, False], n_category)
@@ -250,3 +245,13 @@ def gini_index(y):
 
     ps = np.unique(y, return_counts=True)[1] / (len(y) + 1e-16)
     return np.sum(ps * (1 - ps))
+
+
+def valid_cols(data):
+    """Return boolean array of columns where not all entries are the same
+        as well as label column and no_valid_cols is True if all columns which
+        are not label have all entries the same."""
+    barr = np.empty(data.shape[1], dtype=bool)
+    for j in range(data.shape[1]):
+        barr[j] = not len(np.unique(data[:, j])) == 1
+    return barr
