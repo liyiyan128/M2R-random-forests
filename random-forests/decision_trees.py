@@ -197,8 +197,6 @@ class DecisionTree:
         '''Compute the score using specified criterion.'''
         if self.criterion == "gini":
             criterion = gini_index
-        if self.criterion == "classification_error_rate":
-            criterion = classification_error_rate
 
         # Split `X_col` by `threshold`.
         if self.feature_type[feature]:  # If categorical.
@@ -248,17 +246,9 @@ class DecisionTree:
                 return self._traverse(x, node.right)  # Traverse right subtree.
 
 
-## TODO
-## Need modification for categorical data.
 def gini_index(y):
     """Return the gini index for labels `y`."""
     # G = sum(p_m_k(1 - p_m_k)), 1 <= k <= K
-    ps = len(np.unique(y)) / (len(y) + 1e-16)
+
+    ps = np.unique(y, return_counts=True)[1] / (len(y) + 1e-16)
     return np.sum(ps * (1 - ps))
-
-
-def classification_error_rate(y):
-    """Return the classification error rate for labels `y`."""
-    counts = len(np.unique(y))
-    error_rate = 1 - counts/(len(y) + 1e-16)
-    return error_rate
