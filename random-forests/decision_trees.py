@@ -39,7 +39,7 @@ class DecisionTree:
     min_leaf_size : int, default=1
         The minimum size of a leaf node.
     n_cadidates : int, default=None
-        The number of candidates in a split.
+        The number of candidate splits.
     criterion : string, default="gini"
         The criterion when growing a decision tree.
     tree
@@ -164,6 +164,8 @@ class DecisionTree:
         # Find the range of the data for the feature.
         self.data_range[feature] = np.array([X_col.min(), X_col.max()])
         lo, hi = self.data_range[feature]
+        if lo == hi:
+            return float('inf'), None
         # Randomly choose a threshold.
         threshold = np.random.uniform(lo, hi)
         score = self._criterion(X_col, y, feature, threshold)
