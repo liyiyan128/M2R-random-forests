@@ -18,9 +18,13 @@ class RandomForest:
         The number of candidate splits.
     criterion : string, default="gini"
         The criterion when growing a decision tree.
+    m_features : int, default=None
+        The number of features restricted to use when growing a decision tree.
     feature_type : array_like, default="continuous"
         An array consists of types of features,
         continuous: 0 or categorical: 1.
+    forest
+        The random forest.
 
     Parameters
     ----------
@@ -39,13 +43,19 @@ class RandomForest:
         self.criterion = criterion
         self.forest = []
 
-    def fit(self, X, y, n_features):
+    def fit(self, X, y, m_features=None, feature_type="continuous"):
         """Fit the random forest."""
+        if not m_features:
+            self.m_features = X.shape[1]
+        else:
+            self.m_features = m_features
+        # Ensembling decision trees.
         for _ in range(self.n_trees):
             tree = DecisionTree(self.max_depth, self.min_leaf_size,
                                 self.n_candidates, self.criterion)
-            X_bootstrap, y_bootstrap = bootstrap(X, y)
-            tree.fit(X_bootstrap, y_bootstrap)
+            # Bootstrap sample.
+            X_bootstrap, y_bootstrap = bootstrap(X, y, self.m_features)
+            tree.fit(X_bootstrap, y_bootstrap, feature_type)
             self.forest.append(tree)
 
     def predict(self, X):
@@ -58,8 +68,14 @@ class RandomForest:
         pass
 
 
-def bootstrap(X, y):
-    """Bootstrap sample."""
-    n = X.shape[0]
-    idx = np.random.choice(n, size=n, replace=True)
-    return X[idx], y[idx]
+def bootstrap(X, y, m_features):
+    """Return a bootstrap sample and the corresponding labels.
+
+    Restrict the bootstrap sample to m randomly chosen features.
+    """
+    n_samples, n_features = X.shape
+    bootstrap_idx = np.random.choice(n_samples, size=n_samples, replace=True)
+    feature_idx = np.zeros(n_features, dtype=bool)
+    for i in np.random.choice(n_features, size=m_features):
+        feature_idx[i] = 1
+    return X[bootstrap_idx][feature_idx], y[bootstrap_idx]
