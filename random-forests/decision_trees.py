@@ -107,7 +107,7 @@ class DecisionTree:
                 or len(y) <= self.min_leaf_size
                 or len(np.unique(y)) == 1
                 or not np.any(valid_cols_barr)):
-            return Node(data=self._majority_vote(y))
+            return Node(data=majority_vote(y))
 
         # Find the best splitting feature and threshhold
         # using greedy approach.
@@ -202,22 +202,6 @@ class DecisionTree:
             rt = left_score + right_score
         return rt
 
-    def _majority_vote(self, y):
-        """Return the most common label in `y`.
-
-        In case of a tie, choose randomly.
-        """
-        unique_labels, counts = np.unique(y, return_counts=True)
-        max_count = counts.max()
-        max_indices = np.where(counts == max_count)[0]
-        if len(max_indices) == 1:
-            # Only one label with the maximum count, return it.
-            return unique_labels[max_indices[0]]
-        else:
-            # Multiple labels with the same maximum count, choose randomly.
-            random_index = np.random.choice(max_indices)
-            return unique_labels[random_index]
-
     def _traverse(self, x, node):
         """Traverse the decision tree with data point `x`
         from node `node`."""
@@ -252,3 +236,20 @@ def valid_cols(data):
     for j in range(data.shape[1]):
         barr[j] = not len(np.unique(data[:, j])) == 1
     return barr
+
+
+def majority_vote(y):
+    """Return the most common label in `y`.
+
+    In case of a tie, choose randomly.
+    """
+    unique_labels, counts = np.unique(y, return_counts=True)
+    max_count = counts.max()
+    max_indices = np.where(counts == max_count)[0]
+    if len(max_indices) == 1:
+        # Only one label with the maximum count, return it.
+        return unique_labels[max_indices[0]]
+    else:
+        # Multiple labels with the same maximum count, choose randomly.
+        random_index = np.random.choice(max_indices)
+        return unique_labels[random_index]
