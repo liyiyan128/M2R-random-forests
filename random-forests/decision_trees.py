@@ -141,7 +141,9 @@ class DecisionTree:
         best_feature = None
         best_threshold = None
 
-        for feature in range(self.n_features):
+        for _ in range(self.n_candidates):
+            # Choose a feature randomly.
+            feature = np.random.choice(self.n_features)
             # Categorical split.
             if self.feature_type[feature]:
                 score, threshold = self._split_categorical(X, y, feature)
@@ -159,38 +161,32 @@ class DecisionTree:
     def _split_continuous(self, X, y, feature):
         """Split continuous data."""
         X_col = X[:, feature]
-        # Find the range of data for the feature.
+        # Find the range of the data for the feature.
         self.data_range[feature] = np.array([X_col.min(), X_col.max()])
         lo, hi = self.data_range[feature]
-        # Randomly choose thresholds of size=`n_candidates`.
-        thresholds = np.random.uniform(lo, hi, self.n_candidates)
-        scores = np.array([self._criterion(X_col, y, feature, threshold)
-                          for threshold in thresholds])
-        score = scores.min()
-        threshold = thresholds[np.argmin(scores)]
+        # Randomly choose a threshold.
+        threshold = np.random.uniform(lo, hi)
+        score = self._criterion(X_col, y, feature, threshold)
         return score, threshold
 
     def _split_categorical(self, X, y, feature):
         """Split categorical data."""
         X_col = X[:, feature]
-        # Find the range of data for the feature.
+        # Find the range of the data for the feature.
         self.data_range[feature] = np.unique(X_col)
         n_category = len(self.data_range[feature])
         # If there is only one category.
         if n_category == 1:
             return float('inf'), None
 
-        # Create a random boolean matrix for random subset slicing.
-        subset_idx = np.random.choice([True, False],
-                                      (self.n_candidates, n_category))
-        # Deselect empty set and the set itself.
-        thresholds = np.array([self.data_range[feature][idx]
-                               for idx in subset_idx
-                               if idx.any() and not idx.all()], dtype=object)
-        scores = np.array([self._criterion(X_col, y, feature, threshold)
-                          for threshold in thresholds])
-        score = scores.min()
-        threshold = thresholds[np.argmin(scores)]
+        while True:
+            # Create a random boolean array for random subset slicing.
+            subset_idx = np.random.choice([True, False], n_category)
+            # Avoid empty set and the set itself.
+            if subset_idx.any() and not subset_idx.all():
+                break
+        threshold = self.data_range[feature][subset_idx]
+        score = self._criterion(X_col, y, feature, threshold)
         return score, threshold
 
     def _criterion(self, X_col, y, feature, threshold):
