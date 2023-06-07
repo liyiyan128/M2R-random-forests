@@ -74,9 +74,9 @@ class DecisionTree:
         # Initialise `feature_type`.
         if isinstance(feature_type, str):
             if feature_type == "continuous":
-                self.feature_type = [0 for _ in range(self.n_features)]
+                self.feature_type = np.zeros(self.n_features)
             if feature_type == "categorical":
-                self.feature_type = [1 for _ in range(self.n_features)]
+                self.feature_type = np.ones(self.n_features)
         else:
             self.feature_type = feature_type
         # Grow the decision tree.

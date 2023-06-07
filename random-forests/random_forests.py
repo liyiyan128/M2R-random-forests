@@ -21,6 +21,7 @@ class RandomForest:
         The criterion when growing a decision tree.
     m_features : int, default=None
         The number of features restricted to use when growing a decision tree.
+        1 <= m_features <= X.shape[1]
     feature_type : array_like, default="continuous"
         An array consists of types of features,
         continuous: 0 or categorical: 1.
@@ -44,23 +45,49 @@ class RandomForest:
         self.criterion = criterion
         self.forest = []
 
-    def fit(self, X, y, m_features=None, feature_type="continuous"):
+    def fit(self, X, y, feature_type="continuous", m_features=None):
         """Fit the random forest."""
-        ## TODO
-        ## Need to add parameter m_features
-        #if not m_features:
-        #    self.m_features = X.shape[1]
-        #else:
-        #    self.m_features = m_features
-
         # Ensembling decision trees.
-        for _ in range(self.n_trees):
-            tree = DecisionTree(self.max_depth, self.min_leaf_size,
-                                self.n_candidates, self.criterion)
-            # Bootstrap sample.
-            X_bootstrap, y_bootstrap = bootstrap(X, y)
-            tree.fit(X_bootstrap, y_bootstrap, feature_type)
-            self.forest.append(tree)
+        if not m_features:
+            for _ in range(self.n_trees):
+                tree = DecisionTree(self.max_depth, self.min_leaf_size,
+                                    self.n_candidates, self.criterion)
+                # Bootstrap sample.
+                X_bootstrap, y_bootstrap = bootstrap(X, y)
+                tree.fit(X_bootstrap, y_bootstrap, feature_type)
+                self.forest.append(tree)
+        else:
+            # Checking parameters
+            if not 1 <= m_features <= X.shape[1]:
+                raise ValueError("must have 1 <= m_features <= X.shape[1]")
+            if isinstance(feature_type, str):
+                if feature_type == "continuous":
+                    feature_type = np.zeros(X.shape[1])
+                elif feature_type == "categorical":
+                    feature_type = np.ones(X.shape[1])
+                else:
+                    raise ValueError(f"{feature_type} is not valid for"
+                                     + "feature_type parameter.")
+            else:
+                if len(feature_type) == X.shape[1]:
+                    feature_type = np.array(feature_type)
+                else:
+                    raise ValueError("feature_type has wrong length")
+            # Fitting ensemble of trees
+            for _ in range(self.n_trees):
+                tree = DecisionTree(self.max_depth, self.min_leaf_size,
+                                    self.n_candidates, self.criterion)
+                # Bootstrap sample.
+                X_bootstrap, y_bootstrap = bootstrap(X, y)
+                # Select the features to use
+                feature_choice = np.random.choice(np.arange(X.shape[1]),
+                                                  size=m_features,
+                                                  replace=False)
+                barr = np.zeros(X.shape[1], dtype=bool)
+                barr[feature_choice] = True
+                # Fit the tree but only using random m_features
+                tree.fit(X_bootstrap[:, barr], y_bootstrap, feature_type[barr])
+                self.forest.append(tree)
 
     def predict(self, X):
         """Return the predicted labels for `X`."""
