@@ -14,8 +14,8 @@ class Node:
         The left node of this node.
     right : Node, default=None
         The right node of this node.
-    data : array_like
-        The data in the node.
+    data : numerical or string
+        The classification of a leaf node.
     """
     def __init__(self, feature=None, threshold=None,
                  left=None, right=None, *, data=None):

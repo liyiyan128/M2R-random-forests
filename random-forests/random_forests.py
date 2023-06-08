@@ -108,3 +108,8 @@ def bootstrap(X, y):
     n_samples = X.shape[0]
     bootstrap_idx = np.random.choice(n_samples, size=n_samples, replace=True)
     return X[bootstrap_idx], y[bootstrap_idx]
+
+
+def misclassification_rate(predicted, label):
+    """Return proportion of misclassifications."""
+    return sum(np.logical_not(predicted == label))/len(label)
