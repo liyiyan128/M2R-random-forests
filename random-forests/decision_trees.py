@@ -224,11 +224,14 @@ def gini_index(y):
     return np.sum(ps * (1 - ps))
 
 
-def valid_cols(data):
-    """Return boolean array of columns where not all entries are the same"""
-    barr = np.empty(data.shape[1], dtype=bool)
-    for j in range(data.shape[1]):
-        barr[j] = not len(np.unique(data[:, j])) == 1
+def valid_cols(X):
+    """Return a boolean array.
+
+    Indicate if entries of columns of `X` are not of the same value.
+    """
+    barr = np.empty(X.shape[1], dtype=bool)
+    for col in range(X.shape[1]):
+        barr[col] = not len(np.unique(X[:, col])) == 1
     return barr
 
 
