@@ -46,8 +46,6 @@ class DecisionTree:
         The decision tree.
     n_features : int
         The number of features in the training dataset.
-    data_range : array_like
-        An array consists of the range of the current data for each feature.
     feature_type : array_like, default="continuous"
         An array consists of types of features,
         continuous: 0 or categorical: 1.
@@ -76,13 +74,11 @@ class DecisionTree:
         # Initialise `feature_type`.
         if isinstance(feature_type, str):
             if feature_type == "continuous":
-                self.feature_type = [0 for _ in range(self.n_features)]
+                self.feature_type = np.zeros(self.n_features)
             if feature_type == "categorical":
-                self.feature_type = [1 for _ in range(self.n_features)]
+                self.feature_type = np.ones(self.n_features)
         else:
             self.feature_type = feature_type
-        # Initialise `data_range`.
-        self.data_range = np.empty(self.n_features, dtype=object)
         # Grow the decision tree.
         self.tree = self._grow(X, y)
 
@@ -102,6 +98,7 @@ class DecisionTree:
         # If depth >= math_depth,
         # or leaf_size <= min_leaf_size,
         # or `y` contains only one unique label.
+        # or if all rows of X are the same so cannot split
         valid_cols_barr = valid_cols(X)
         if (depth >= self.max_depth
                 or len(y) <= self.min_leaf_size
@@ -158,8 +155,7 @@ class DecisionTree:
         """Split continuous data."""
         X_col = X[:, feature]
         # Find the range of the data for the feature.
-        self.data_range[feature] = np.array([X_col.min(), X_col.max()])
-        lo, hi = self.data_range[feature]
+        lo, hi = X_col.min(), X_col.max()
         # Randomly choose a threshold.
         threshold = np.random.uniform(lo, hi)
         score = self._criterion(X_col, y, feature, threshold)
@@ -168,16 +164,16 @@ class DecisionTree:
     def _split_categorical(self, X, y, feature):
         """Split categorical data."""
         X_col = X[:, feature]
-        # Find the range of the data for the feature.
-        self.data_range[feature] = np.unique(X_col)
-        n_category = len(self.data_range[feature])
+        # Find the different categories for the feature.
+        categories = np.unique(X_col)
+        n_category = len(categories)
         while True:
             # Create a random boolean array for random subset slicing.
             subset_idx = np.random.choice([True, False], n_category)
             # Avoid empty set and the set itself.
             if subset_idx.any() and not subset_idx.all():
                 break
-        threshold = self.data_range[feature][subset_idx]
+        threshold = categories[subset_idx]
         score = self._criterion(X_col, y, feature, threshold)
         return score, threshold
 
@@ -229,9 +225,7 @@ def gini_index(y):
 
 
 def valid_cols(data):
-    """Return boolean array of columns where not all entries are the same
-        as well as label column and no_valid_cols is True if all columns which
-        are not label have all entries the same."""
+    """Return boolean array of columns where not all entries are the same"""
     barr = np.empty(data.shape[1], dtype=bool)
     for j in range(data.shape[1]):
         barr[j] = not len(np.unique(data[:, j])) == 1
