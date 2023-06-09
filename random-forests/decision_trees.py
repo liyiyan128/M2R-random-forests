@@ -38,10 +38,8 @@ class DecisionTree:
         The maximum number of splits.
     min_leaf_size : int, default=1
         The minimum size of a leaf node.
-    n_cadidates : int, default=None
+    n_cadidates : int, default=10
         The number of candidates in a split.
-    m_features : int, 1<=m_features<=X.shape[1]
-        If None then uses all features
     criterion : string, default="gini"
         The criterion when growing a decision tree.
     tree
@@ -51,7 +49,10 @@ class DecisionTree:
     feature_type : array_like, default="continuous"
         An array consists of types of features,
         continuous: 0 or categorical: 1.
-
+    m_features : int, default=None
+        The number of features considered at each split.
+        If an int then must have 1 <= m_features <= X.shape[1].
+        If m_features=None then considers all features.
     Parameters
     ----------
     X : ndarray
