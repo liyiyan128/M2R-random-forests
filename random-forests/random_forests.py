@@ -47,45 +47,15 @@ class RandomForest:
 
     def fit(self, X, y, feature_type="continuous", m_features=None):
         """Fit the random forest."""
-        if not m_features:  # If m_features unspecified.
-            # Ensembling decision trees.
-            for _ in range(self.n_trees):
-                tree = DecisionTree(self.max_depth, self.min_leaf_size,
-                                    self.n_candidates, self.criterion)
-                # Bootstrap sample.
-                X_bootstrap, y_bootstrap = bootstrap(X, y)
-                tree.fit(X_bootstrap, y_bootstrap, feature_type)
-                self.forest.append(tree)
-        else:
-            # Checking parameters.
-            if not 1 <= m_features <= X.shape[1]:
-                raise ValueError("1 <= m_features <= X.shape[1]")
-            if isinstance(feature_type, str):
-                if feature_type == "continuous":
-                    feature_type = np.zeros(X.shape[1])
-                elif feature_type == "categorical":
-                    feature_type = np.ones(X.shape[1])
-                else:
-                    raise ValueError(f"{feature_type} is not valid")
-            else:
-                if len(feature_type) == X.shape[1]:
-                    feature_type = np.array(feature_type)
-                else:
-                    raise ValueError("feature_type length dismatch")
-            # Ensembling decision trees.
-            for _ in range(self.n_trees):
-                tree = DecisionTree(self.max_depth, self.min_leaf_size,
-                                    self.n_candidates, self.criterion)
-                # Bootstrap sample.
-                X_bootstrap, y_bootstrap = bootstrap(X, y)
-                # Bootstrap features.
-                feature_choice = np.random.choice(X.shape[1], size=m_features,
-                                                  replace=False)
-                barr = np.zeros(X.shape[1], dtype=bool)
-                barr[feature_choice] = 1
-                # Fit the tree but only using random m_features
-                tree.fit(X_bootstrap[:, barr], y_bootstrap, feature_type[barr])
-                self.forest.append(tree)
+        # Ensembling decision trees.
+        # if not m_features:
+        for _ in range(self.n_trees):
+            tree = DecisionTree(self.max_depth, self.min_leaf_size,
+                                self.n_candidates, self.criterion)
+            # Bootstrap sample.
+            X_bootstrap, y_bootstrap = bootstrap(X, y)
+            tree.fit(X_bootstrap, y_bootstrap, feature_type, m_features)
+            self.forest.append(tree)
 
     def predict(self, X):
         """Return the predicted labels for `X`."""
@@ -109,5 +79,5 @@ def bootstrap(X, y):
 
 
 def misclassification_rate(predicted, label):
-    """Return the proportion of misclassifications."""
-    return sum(np.logical_not(predicted == label)) / len(label)
+    """Return proportion of misclassifications."""
+    return sum(np.logical_not(predicted == label))/len(label)

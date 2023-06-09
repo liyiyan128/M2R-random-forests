@@ -40,6 +40,8 @@ class DecisionTree:
         The minimum size of a leaf node.
     n_cadidates : int, default=None
         The number of candidates in a split.
+    m_features : int, 1<=m_features<=X.shape[1]
+        If None then uses all features
     criterion : string, default="gini"
         The criterion when growing a decision tree.
     tree
@@ -58,17 +60,22 @@ class DecisionTree:
     y : array_like
         The labels.
     """
-    def __init__(self, max_depth=100, min_leaf_size=1,
-                 n_candidates=10, criterion="gini"):
+    def __init__(self, max_depth=100, min_leaf_size=1, n_candidates=10,
+                 criterion="gini"):
         self.max_depth = max_depth
         self.min_leaf_size = min_leaf_size
         self.n_candidates = n_candidates
         self.criterion = criterion
         self.tree = None
 
-    def fit(self, X, y, feature_type="continuous"):
+    def fit(self, X, y, feature_type="continuous", m_features=None):
         """Fit the training dataset `X` and the labels `y`
         by the decision tree."""
+        if m_features is None:
+            m_features = X.shape[1]
+        elif m_features <= 0 or m_features > X.shape[1]:
+            raise ValueError("Must have 1 <= m_features <= X.shape[1]")
+        self.m_features = m_features
         self.n_features = X.shape[1]
         self.feature_type = []
         # Initialise `feature_type`.
@@ -135,6 +142,9 @@ class DecisionTree:
         best_threshold = None
 
         features = np.arange(self.n_features)[v_cols]
+        if len(features) > self.m_features:
+            features = np.random.choice(features, size=self.m_features,
+                                        replace=False)
         for _ in range(self.n_candidates):
             # Choose a feature randomly.
             feature = np.random.choice(features)
@@ -224,14 +234,11 @@ def gini_index(y):
     return np.sum(ps * (1 - ps))
 
 
-def valid_cols(X):
-    """Return a boolean array.
-
-    Indicate if entries of columns of `X` are not of the same value.
-    """
-    barr = np.empty(X.shape[1], dtype=bool)
-    for col in range(X.shape[1]):
-        barr[col] = not len(np.unique(X[:, col])) == 1
+def valid_cols(data):
+    """Return boolean array of columns where not all entries are the same"""
+    barr = np.empty(data.shape[1], dtype=bool)
+    for j in range(data.shape[1]):
+        barr[j] = not len(np.unique(data[:, j])) == 1
     return barr
 
 
