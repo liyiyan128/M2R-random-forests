@@ -75,7 +75,7 @@ class DecisionTree:
         self.n_features = X.shape[1]
         # Initialise `m_features`.
         if m_features is None:
-            m_features = self.n_features
+            self.m_features = self.n_features
         elif m_features <= 0 or m_features > self.n_features:
             raise ValueError("1 <= m_features <= " + f"{self.n_features}")
         else:
