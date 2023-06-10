@@ -72,14 +72,16 @@ class DecisionTree:
     def fit(self, X, y, feature_type="continuous", m_features=None):
         """Fit the training dataset `X` and the labels `y`
         by the decision tree."""
+        # Initialise `m_features`.
         if m_features is None:
             m_features = X.shape[1]
         elif m_features <= 0 or m_features > X.shape[1]:
-            raise ValueError("Must have 1 <= m_features <= X.shape[1]")
-        self.m_features = m_features
+            raise ValueError("1 <= m_features <= X.shape[1]")
+        else:
+            self.m_features = m_features
         self.n_features = X.shape[1]
-        self.feature_type = []
         # Initialise `feature_type`.
+        self.feature_type = []
         if isinstance(feature_type, str):
             if feature_type == "continuous":
                 self.feature_type = np.zeros(self.n_features)
@@ -107,16 +109,16 @@ class DecisionTree:
         # or leaf_size <= min_leaf_size,
         # or `y` contains only one unique label.
         # or if all rows of X are the same so cannot split
-        valid_cols_barr = valid_cols(X)
+        v_cols = valid_cols(X)
         if (depth >= self.max_depth
                 or len(y) <= self.min_leaf_size
                 or len(np.unique(y)) == 1
-                or not np.any(valid_cols_barr)):
+                or not np.any(v_cols)):
             return Node(data=majority_vote(y))
 
         # Find the best splitting feature and threshhold
         # using greedy approach.
-        feature, threshold = self._cutpoint(X, y, valid_cols_barr)
+        feature, threshold = self._cutpoint(X, y, v_cols)
         # Split the data using the best cutpoint.
         # Create two boolean arrays to slice left and right data.
         if self.feature_type[feature]:  # If categorical.
@@ -141,11 +143,12 @@ class DecisionTree:
         best_score = float('inf')
         best_feature = None
         best_threshold = None
-
+        # Restrict features.
         features = np.arange(self.n_features)[v_cols]
         if len(features) > self.m_features:
             features = np.random.choice(features, size=self.m_features,
                                         replace=False)
+        # Split.
         for _ in range(self.n_candidates):
             # Choose a feature randomly.
             feature = np.random.choice(features)
@@ -196,16 +199,17 @@ class DecisionTree:
         else:
             left_idx = X_col <= threshold
         right_idx = ~left_idx
+        # Choose criterion.
         if self.criterion == "gini_weighted":
             left_score = gini_index(y[left_idx])
             right_score = gini_index(y[right_idx])
             # Weighted average.
             rt = (left_score*len(left_idx)
                   + right_score*len(right_idx)) / len(y)
-        elif self.criterion == "gini":
+        if self.criterion == "gini":
             left_score = gini_index(y[left_idx])
             right_score = gini_index(y[right_idx])
-            # Weighted average.
+            # Sum.
             rt = left_score + right_score
         return rt
 
@@ -230,17 +234,19 @@ class DecisionTree:
 def gini_index(y):
     """Return the gini index for labels `y`."""
     # G = sum(p_m_k(1 - p_m_k)), 1 <= k <= K
-
     ps = np.unique(y, return_counts=True)[1] / len(y)
     return np.sum(ps * (1 - ps))
 
 
-def valid_cols(data):
-    """Return boolean array of columns where not all entries are the same"""
-    barr = np.empty(data.shape[1], dtype=bool)
-    for j in range(data.shape[1]):
-        barr[j] = not len(np.unique(data[:, j])) == 1
-    return barr
+def valid_cols(X):
+    """Return a boolean array indicate columns of `X` are valid.
+
+    A column of `X` is valid if the entries are not of the same value.
+    """
+    v_cols = np.empty(X.shape[1], dtype=bool)
+    for col in range(X.shape[1]):
+        v_cols[col] = not len(np.unique(X[:, col])) == 1
+    return v_cols
 
 
 def majority_vote(y):
