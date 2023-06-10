@@ -49,7 +49,6 @@ class RandomForest:
     def fit(self, X, y, feature_type="continuous", m_features=None):
         """Fit the random forest."""
         # Ensembling decision trees.
-        # if not m_features:
         for _ in range(self.n_trees):
             tree = DecisionTree(self.max_depth, self.min_leaf_size,
                                 self.n_candidates, self.criterion)
@@ -79,6 +78,6 @@ def bootstrap(X, y):
     return X[bootstrap_idx], y[bootstrap_idx]
 
 
-def misclassification_rate(predicted, label):
-    """Return proportion of misclassifications."""
-    return sum(np.logical_not(predicted == label))/len(label)
+def misclassification_rate(y_tilde, y):
+    """Return the proportion of misclassifications."""
+    return sum(np.logical_not(y_tilde == y)) / len(y)

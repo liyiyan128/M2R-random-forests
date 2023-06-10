@@ -72,14 +72,14 @@ class DecisionTree:
     def fit(self, X, y, feature_type="continuous", m_features=None):
         """Fit the training dataset `X` and the labels `y`
         by the decision tree."""
+        self.n_features = X.shape[1]
         # Initialise `m_features`.
         if m_features is None:
-            m_features = X.shape[1]
-        elif m_features <= 0 or m_features > X.shape[1]:
-            raise ValueError("1 <= m_features <= X.shape[1]")
+            m_features = self.n_features
+        elif m_features <= 0 or m_features > self.n_features:
+            raise ValueError("1 <= m_features <= " + f"{self.n_features}")
         else:
             self.m_features = m_features
-        self.n_features = X.shape[1]
         # Initialise `feature_type`.
         self.feature_type = []
         if isinstance(feature_type, str):
