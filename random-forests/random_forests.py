@@ -49,6 +49,7 @@ class RandomForest:
     def fit(self, X, y, feature_type="continuous", m_features=None):
         """Fit the random forest."""
         # Ensembling decision trees.
+        self.forest = []
         for _ in range(self.n_trees):
             tree = DecisionTree(self.max_depth, self.min_leaf_size,
                                 self.n_candidates, self.criterion)
