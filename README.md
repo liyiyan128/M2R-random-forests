@@ -17,9 +17,9 @@ The [example code](https://github.com/liyiyan128/M2R-random-forests/blob/main/ex
 
 ## Simulations
 [pdf](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations.pdf)/[ipynb](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/simulations.ipynb)
-- [RandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest%20Performance%20as%20n_trees%20Varies.png)
-- [ImprovedRandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/ImprovedRandomForest%20Performance%20as%20n_trees%20Varies.png)
-- [RandomForest Performance on the Titanic Dataset](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest%20Performance%20on%20the%20Titanic%20Dataset.png)
+- [RandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest-Performance-as-n_trees-Varies.png)
+- [ImprovedRandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/ImprovedRandomForest-Performance-as-n_trees-Varies.png)
+- [RandomForest Performance on the Titanic Dataset](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest-Performance-on-the-Titanic-Dataset.png)
 
 ## Datasets
 - [Iris](https://archive.ics.uci.edu/dataset/53/iris)
