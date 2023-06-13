@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "Python: File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}/simulations",
+            "justMyCode": true
+        }
+    ]
+}
