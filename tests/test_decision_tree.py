@@ -1,6 +1,4 @@
-import pytest
 import numpy as np
-import sklearn as sk
 from sklearn.datasets import load_iris
 from sklearn import model_selection
 import importlib
