@@ -22,16 +22,22 @@ The [example code](https://github.com/liyiyan128/M2R-random-forests/blob/main/ex
 
 ## Simulations
 [pdf](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations.pdf)/[ipynb](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/simulations.ipynb)
-- [RandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest-Performance-as-n_trees-Varies.png)
-- [ImprovedRandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/ImprovedRandomForest-Performance-as-n_trees-Varies.png)
-- [RandomForest Performance on the Titanic Dataset](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest-Performance-on-the-Titanic-Dataset.png)
+
+![Fig 1. RandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest-Performance-as-n_trees-Varies.png)
+
+![Fig 2. ImprovedRandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/ImprovedRandomForest-Performance-as-n_trees-Varies.png)
+
+![Fig 3. RandomForest Performance on the Titanic Dataset](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest-Performance-on-the-Titanic-Dataset.png)
+
+![Fig 4. RF & ImprovedRF Performance on the Breast Cancer Dataset](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RF-IRF-Performance-on-the-Breast-Cancer-Dataset.png)
 
 ## Datasets
-- [Iris](https://archive.ics.uci.edu/dataset/53/iris)
-- [Wine](https://archive.ics.uci.edu/dataset/109/wine)
-- [Mushroom](https://archive.ics.uci.edu/dataset/73/mushroom)
-- [Breast Cancer](https://archive.ics.uci.edu/dataset/14/breast+cancer)
-- [Titanic](https://www.kaggle.com/competitions/titanic/data)
+- [Iris](https://archive.ics.uci.edu/dataset/53/iris): $150 \times 4$, continuous, simple
+- [Wine](https://archive.ics.uci.edu/dataset/109/wine): $178 \times 13$, continuous, simple
+- [Mushroom](https://archive.ics.uci.edu/dataset/73/mushroom): $8124 \times 22$ (clean), categorical, simple
+- [Breast Cancer](https://archive.ics.uci.edu/dataset/14/breast+cancer): $277 \times 9$ (clean), categorical
+- [Heart Disease](https://archive.ics.uci.edu/dataset/45/heart+disease): $297 \times 13$ (clean), complex
+- [Titanic](https://www.kaggle.com/competitions/titanic/data): $712 \times 7$ (clean), complex
 
 ## Reference
 [1. James, G., Witten, D., Hastie, T., & Tibshirani, R. (2013). An Introduction to Statistical Learning: with Applications in R. Springer.](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/An%20Introduction%20to%20Statistical%20Learning.pdf)
