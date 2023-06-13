@@ -1,44 +1,34 @@
 # M2R: Random Forests
 
+## Introduction
+This project
+  - studied and implemented Decision Trees and Random Forests for     classification problems
+  - performed simulations on various [datasets](#datasets)
 
-[An Introduction to Statistical Learning](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/An%20Introduction%20to%20Statistical%20Learning.pdf)
-
-[Breiman](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/Breiman.pdf)
-
+The [example code](https://github.com/liyiyan128/M2R-random-forests/blob/main/example_code_iris.ipynb) applies DecisionTree and RandomForest to the Iris dataset.
 
 ## Contents
 - [M2R: Random Forests](#m2r-random-forests)
+  - [Introduction](#introduction)
   - [Contents](#contents)
-  - [Code](#code)
-  - [Git](#git)
+  - [Simulations](#simulations)
+  - [Datasets](#datasets)
+  - [Reference](#reference)
 
+## Simulations
+[pdf](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations.pdf)/[ipynb](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/simulations.ipynb)
+- [RandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest%20Performance%20as%20n_trees%20Varies.png)
+- [ImprovedRandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/ImprovedRandomForest%20Performance%20as%20n_trees%20Varies.png)
+- [RandomForest Performance on the Titanic Dataset](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest%20Performance%20on%20the%20Titanic%20Dataset.png)
 
-## Code
-*Please comment you code.* (Follow PEP8 if possible)
+## Datasets
+- [Iris](https://archive.ics.uci.edu/dataset/53/iris)
+- [Wine](https://archive.ics.uci.edu/dataset/109/wine)
+- [Mushroom](https://archive.ics.uci.edu/dataset/73/mushroom)
+- [Breast Cancer](https://archive.ics.uci.edu/dataset/14/breast+cancer)
+- [Titanic](https://www.kaggle.com/competitions/titanic/data)
 
+## Reference
+[An Introduction to Statistical Learning](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/An%20Introduction%20to%20Statistical%20Learning.pdf)
 
-## Git
-Please clone the repository. Don't fork it.
-```
-$ git clone <repo>
-```
-
-Please create a new branch `dev` when working on your part of the project.<br/>
-Create and switch to local `dev` branch:
-```
-$ git checkout -b dev origin/dev
-```
-
-Work on your local `dev` branch and push as you go. *Please include commit message.*
-```
-$ git add <file>
-$ git commit -m "<message>"
-$ git push origin dev
-```
-
-If there are conflicts when pushing your work, pull updates and resolve conflicts.<br/>
-(Remember to set up upstream first)
-```
-$ git branch --set-upstream-to=origin/dev dev
-$ git pull
-````
+[Breiman](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/Breiman.pdf)
