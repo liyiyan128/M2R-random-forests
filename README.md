@@ -1,15 +1,20 @@
 # M2R: Random Forests
 
-## Introduction
+## Overview
 This project
   - studied and implemented Decision Trees and Random Forests for     classification problems
   - performed simulations on various [datasets](#datasets)
 
 The [example code](https://github.com/liyiyan128/M2R-random-forests/blob/main/example_code_iris.ipynb) applies DecisionTree and RandomForest to the Iris dataset.
 
+**Summary**
+- <ins>RF accuracy</ins> depends on individual tree *strength* and *correlation*
+- LLN guarantees the generalisation error converges a.s. as `n_trees` increases,<br> so that overfitting is not a problem.
+- <ins>RF performance</ins> is *insensitive* to `m_features`,<br> and usually `m_features=1` or `m_features=2` gives near optimum results   
+
 ## Contents
 - [M2R: Random Forests](#m2r-random-forests)
-  - [Introduction](#introduction)
+  - [Overview](#overview)
   - [Contents](#contents)
   - [Simulations](#simulations)
   - [Datasets](#datasets)
@@ -29,6 +34,6 @@ The [example code](https://github.com/liyiyan128/M2R-random-forests/blob/main/ex
 - [Titanic](https://www.kaggle.com/competitions/titanic/data)
 
 ## Reference
-[An Introduction to Statistical Learning](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/An%20Introduction%20to%20Statistical%20Learning.pdf)
+[1. James, G., Witten, D., Hastie, T., & Tibshirani, R. (2013). An Introduction to Statistical Learning: with Applications in R. Springer.](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/An%20Introduction%20to%20Statistical%20Learning.pdf)
 
-[Breiman](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/Breiman.pdf)
+[2. Breiman, L. (2001). Random forests. Machine learning, 45(1), 5-32.](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/Breiman.pdf)
