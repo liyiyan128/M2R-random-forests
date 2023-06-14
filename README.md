@@ -21,13 +21,12 @@ The [example code](https://github.com/liyiyan128/M2R-random-forests/blob/main/ex
   - [Reference](#reference)
 
 ## Simulations
-[pdf](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations.pdf)/[ipynb](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/simulations.ipynb)
 
-![Fig 1. RandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest-Performance-as-n_trees-Varies.png)
+![Fig 1. RF Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RF-n50.png)
 
-![Fig 2. ImprovedRandomForest Performance as n_trees Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/ImprovedRandomForest-Performance-as-n_trees-Varies.png)
+![Fig 2. RF Performance as m_features Varies](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RF-Titanic-m4.png)
 
-![Fig 3. RandomForest Performance on the Titanic Dataset](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RandomForest-Performance-on-the-Titanic-Dataset.png)
+![Fig 3. RF & ImprovedRF Performance on the Titanic Dataset](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RF-IRF-Titanic.png)
 
 ![Fig 4. RF & ImprovedRF Performance on the Breast Cancer Dataset](https://github.com/liyiyan128/M2R-random-forests/blob/main/simulations/graphs/RF-IRF-Performance-on-the-Breast-Cancer-Dataset.png)
 
@@ -40,6 +39,7 @@ The [example code](https://github.com/liyiyan128/M2R-random-forests/blob/main/ex
 - [Titanic](https://www.kaggle.com/competitions/titanic/data): $712 \times 7$ (clean), complex
 
 ## Reference
-[1. James, G., Witten, D., Hastie, T., & Tibshirani, R. (2013). An Introduction to Statistical Learning: with Applications in R. Springer.](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/An%20Introduction%20to%20Statistical%20Learning.pdf)
 
-[2. Breiman, L. (2001). Random forests. Machine learning, 45(1), 5-32.](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/Breiman.pdf)
+[[1] Breiman, L. (2001). Random forests. Machine learning, 45(1), 5-32.](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/Breiman.pdf)
+
+[[2] James, G., Witten, D., Hastie, T., & Tibshirani, R. (2013). An Introduction to Statistical Learning: with Applications in R. Springer.](https://github.com/liyiyan128/M2R-random-forests/blob/main/materials/An%20Introduction%20to%20Statistical%20Learning.pdf)
